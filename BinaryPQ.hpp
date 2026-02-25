@@ -19,7 +19,7 @@ public:
     // Runtime: O(1)
     explicit BinaryPQ(COMP_FUNCTOR comp = COMP_FUNCTOR())
         : BaseClass { comp } {
-        // TODO: Implement this function, or verify that it is already done
+	data.push_back(TYPE());
     }  // BinaryPQ
 
 
@@ -28,10 +28,10 @@ public:
     // Runtime: O(n) where n is number of elements in range.
     template<typename InputIterator>
     BinaryPQ(InputIterator start, InputIterator end, COMP_FUNCTOR comp = COMP_FUNCTOR())
-        : BaseClass { comp } {
-        // TODO: Implement this function
-        (void)start;  // Delete this line when you implement this function
-        (void)end;  // Delete this line when you implement this function
+        : BaseClass { comp }, data { start, end } {
+	data.push_back(TYPE());
+	std::swap(data.begin(), --data.end());
+	updatePriorities();
     }  // BinaryPQ
 
 
@@ -56,15 +56,25 @@ public:
     //              'rebuilds' the heap by fixing the heap invariant.
     // Runtime: O(n)
     virtual void updatePriorities() {
-        // TODO: Implement this function.
+	for (size_t i = 1; i < (size()/2)+1; ++i) {
+		while (2*i <= size()) {
+			size_t newi = (2*i < size() && this->compare(data[2*i], data[2*i + 1])) ? (2*i + 1) : (2*i);
+			if (this->compare(data[newi], data[i])) break; else std::swap(data.begin() + i, data.begin() + newi);
+			i = newi;
+		}
+	} 
     }  // updatePriorities()
 
 
     // Description: Add a new element to the PQ.
     // Runtime: O(log(n))
     virtual void push(const TYPE &val) {
-        // TODO: Implement this function.
-        (void)val;  // Delete this line when you implement this function
+	size_t i = data.size();
+	data.push_back(val);
+	while (i != 1 && this->compare(data[i/2],data[i])) {
+		swap(data.begin() + data[i/2], data.begin() + data[i]);
+		i /= 2;
+	}
     }  // push()
 
 
@@ -75,7 +85,16 @@ public:
     // familiar with them, you do not need to use exceptions in this project.
     // Runtime: O(log(n))
     virtual void pop() {
-        // TODO: Implement this function.
+	swap(++data.begin(), --data.end());
+	data.pop_back();
+	size_t i = 1;
+	while (2*i < data.size()) {
+		if (this->compare(data[2*i+1], data[2*i])) {
+			if (this->compare(data[i], data[2*i])) swap(data.begin()+i, data.begin() + (2*i));
+		} else {
+			if (this->compare(data[i], data[2*i+1])) swap(data.begin()+i, data.begin() + (2*i + 1));
+		}
+	}
     }  // pop()
 
 
@@ -85,11 +104,8 @@ public:
     //              that might make it no longer be the most extreme element.
     // Runtime: O(1)
     virtual const TYPE &top() const {
-        // TODO: Implement this function.
 
-        // These lines are present only so that this provided file compiles.
-        static TYPE temp;  // TODO: Delete this line
-        return temp;  // TODO: Delete or change this line
+        return data[1];  // TODO: Delete or change this line
     }  // top()
 
 
@@ -98,7 +114,7 @@ public:
     [[nodiscard]] virtual std::size_t size() const {
         // TODO: Implement this function. Might be very simple,
         // depending on your implementation.
-        return 0;  // TODO: Delete or change this line
+        return data.size()-1;  // TODO: Delete or change this line
     }  // size()
 
 
@@ -107,7 +123,7 @@ public:
     [[nodiscard]] virtual bool empty() const {
         // TODO: Implement this function. Might be very simple,
         // depending on your implementation.
-        return true;  // TODO: Delete or change this line
+        return data.size() == 1;  // TODO: Delete or change this line
     }  // empty()
 
 
